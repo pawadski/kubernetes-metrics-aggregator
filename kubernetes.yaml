@@ -1,0 +1,78 @@
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: metrics-aggregator
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: metrics-aggregator
+  namespace: default
+rules:
+- apiGroups: [""] # "" indicates the core API group
+  resources: ["pods"]
+  verbs: ["get", "watch", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+# This role binding allows "jane" to read pods in the "default" namespace.
+# You need to already have a Role named "pod-reader" in that namespace.
+kind: ClusterRoleBinding
+metadata:
+  name: metrics-aggregator
+subjects:
+# You can specify more than one "subject"
+- kind: ServiceAccount
+  name: metrics-aggregator # "name" is case sensitive
+  namespace: default
+  apiGroup: ""
+roleRef:
+  # "roleRef" specifies the binding to a Role / ClusterRole
+  kind: ClusterRole #this must be Role or ClusterRole
+  name: metrics-aggregator # this must match the name of the Role or ClusterRole you wish to bind to
+  apiGroup: ""
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: metrics-aggregator
+  namespace: default
+  labels:
+    app: metrics-aggregator
+spec:
+  serviceAccountName: metrics-aggregator
+  containers:
+    - name: metrics-aggregator
+      image: pawadski/kubernetes-metrics-aggregator:latest
+      workingDir: "/"
+      command: [ "python3", "/app.py" ]
+      env:
+      - name: LOG_LEVEL
+        value: warning
+      - name: CACHE_UPDATE_INTERVAL
+        value: 10
+      - name: SERVER_WORKERS
+        value: 2
+      - name: CLIENT_WORKERS
+        value: 2
+  nodeSelector:
+    node-role.kubernetes.io/control-plane: ""
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: metrics-aggregator
+  labels:
+    app: metrics-aggregator
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+  selector:
+    app: metrics-aggregator
+  externalTrafficPolicy: Local
+  type: LoadBalancer
+  externalIPs:
+    - 192.168.200.23 # CHANGE ME?
