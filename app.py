@@ -30,7 +30,7 @@ log_levels = {
 }
 
 settings = {
-    'log-level': log_levels[ os.getenv('LOGLEVEL', 'info') ],
+    'log-level': log_levels[ os.getenv('LOG_LEVEL', 'info') ],
     'cache-update-interval': int(os.getenv('CACHE_UPDATE_INTERVAL', '10')),
     'server-workers': int(os.getenv('SERVER_WORKERS', '2')),
     'client-workers': int(os.getenv('CLIENT_WORKERS', '2'))
