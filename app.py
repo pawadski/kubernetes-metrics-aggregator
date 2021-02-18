@@ -16,7 +16,7 @@ pod_job_cache = manager.dict( { 'cache': None } )
 # pod_job_cache = { '_bare': True }
 
 default_pod_labels = {
-    'endpoint': '/metrics',
+    'endpoint': 'metrics',
     'port': '80',
     'scrape-timeout-seconds': '5',
     'job-name': None
@@ -160,12 +160,13 @@ def aggregate_metrics(raw_metrics):
             _, comment_type, metric_name, text = metric.split(' ', 3)
 
             if metric_name not in aggregated_metrics.keys():
-                aggregated_metrics[metric_name] = {}
+                aggregated_metrics[metric_name] = { 'data': [] }
 
             aggregated_metrics[metric_name][comment_type] = text
             continue 
         
         metric_name, _, metric_value = metric.rpartition(' ')
+        metric_name, _ = metric_name.split('{', 1)
 
         if metric_name not in aggregated_metrics.keys():
             aggregated_metrics[metric_name] = { 'data': [] }
@@ -183,7 +184,8 @@ def aggregate_metrics(raw_metrics):
 
         try:
             prev = None 
-            for line in sorted(aggregated_metrics[ metric_name ]['data']):
+            aggregated_metrics[ metric_name ]['data'].sort()
+            for line in aggregated_metrics[ metric_name ]['data']:
                 if line == prev:
                     log("warning", f"ignoring duplicate metric: {metric}")
                     continue 
