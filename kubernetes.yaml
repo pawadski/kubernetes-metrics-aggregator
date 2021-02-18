@@ -33,31 +33,40 @@ roleRef:
   name: metrics-aggregator # this must match the name of the Role or ClusterRole you wish to bind to
   apiGroup: ""
 ---
-apiVersion: v1
-kind: Pod
+apiVersion: apps/v1
+kind: Deployment
 metadata:
   name: metrics-aggregator
   namespace: default
-  labels:
-    app: metrics-aggregator
 spec:
-  serviceAccountName: metrics-aggregator
-  containers:
-    - name: metrics-aggregator
-      image: pawadski/kubernetes-metrics-aggregator:latest
-      workingDir: "/"
-      command: [ "python3", "/app.py" ]
-      env:
-      - name: LOG_LEVEL
-        value: "warning"
-      - name: CACHE_UPDATE_INTERVAL
-        value: "10"
-      - name: SERVER_WORKERS
-        value: "2"
-      - name: CLIENT_WORKERS
-        value: "2"
-  nodeSelector:
-    node-role.kubernetes.io/control-plane: ""
+  strategy:
+    type: RollingUpdate
+  selector:
+    matchLabels:
+      app: metrics-aggregator
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: metrics-aggregator
+    spec:
+      serviceAccountName: metrics-aggregator
+      containers:
+        - name: metrics-aggregator
+          image: pawadski/kubernetes-metrics-aggregator:latest
+          workingDir: "/"
+          command: [ "python3", "/app.py" ]
+          env:
+          - name: LOG_LEVEL
+            value: "warning"
+          - name: CACHE_UPDATE_INTERVAL
+            value: "10"
+          - name: SERVER_WORKERS
+            value: "2"
+          - name: CLIENT_WORKERS
+            value: "2"
+      nodeSelector:
+        node-role.kubernetes.io/control-plane: ""
 ---
 apiVersion: v1
 kind: Service
@@ -75,4 +84,4 @@ spec:
   externalTrafficPolicy: Local
   type: LoadBalancer
   externalIPs:
-    - 192.168.200.23 # CHANGE ME?
+    - 192.168.200.23 # CHANGE ME
