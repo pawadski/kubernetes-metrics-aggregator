@@ -49,13 +49,13 @@ spec:
       command: [ "python3", "/app.py" ]
       env:
       - name: LOG_LEVEL
-        value: warning
+        value: "warning"
       - name: CACHE_UPDATE_INTERVAL
-        value: 10
+        value: "10"
       - name: SERVER_WORKERS
-        value: 2
+        value: "2"
       - name: CLIENT_WORKERS
-        value: 2
+        value: "2"
   nodeSelector:
     node-role.kubernetes.io/control-plane: ""
 ---
