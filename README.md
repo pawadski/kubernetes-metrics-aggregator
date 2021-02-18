@@ -7,7 +7,7 @@ Small multiprocessing-capable server that scrapes metrics inside clusters for yo
 ### wtf
 
 This thing will:
-1. Find pods that have labels setup for scraping
+1. Find pods that have labels setup for scraping (through a service account, using the Kubernetes API)
 2. Scrape them using a number of workers
 3. Aggregate the metrics
 4. Give them to you   
@@ -44,3 +44,10 @@ promhttp_metric_handler_requests_total{code="500",instance="memcached-db-7788765
 promhttp_metric_handler_requests_total{code="500",instance="memcached-session-69b5fdf649-zx8lg",job="memcached",pod-namespace="someothernamespace",pod-ip="10.244.134.119"} 0
 ...
 ```
+
+### Environment
+
+- LOG_LEVEL: log level, default info
+- CACHE_UPDATE_INTERVAL: how often to poll kubernetes API for pods, default 10 seconds
+- SERVER_WORKERS: number of worker processes supporting the webserver (ie. to answer requests), default 2
+- CLIENT_WORKERS: number of worker processes spawned by the server to fetch metrics, default 2
