@@ -34,14 +34,13 @@ Metrics aggregator will scrape **all** pods with this label and give you their m
 ```
 curl 'localhost:80/metrics?job=memcached'
 ...
-memcached_slab_lru_hits_total{lru="warm",slab="1",instance="memcached-session-69b5fdf649-zx8lg",job="memcached",pod-namespace="asdf",pod-ip="10.244.134.119"} 0
-memcached_slab_mem_requested_bytes{slab="1",instance="memcached-session-69b5fdf649-zx8lg",job="memcached",pod-namespace="asdf",pod-ip="10.244.134.119"} 546
-memcached_slab_warm_age_seconds{slab="1",instance="memcached-session-69b5fdf649-zx8lg",job="memcached",pod-namespace="asdf",pod-ip="10.244.134.119"} 0
-memcached_slab_warm_items{slab="1",instance="memcached-session-69b5fdf649-zx8lg",job="memcached",pod-namespace="asdf",pod-ip="10.244.134.119"} 0
-memcached_time_seconds{instance="memcached-session-69b5fdf649-zx8lg",job="memcached",pod-namespace="asdf",pod-ip="10.244.134.119"} 1.613644563e+09
-memcached_up{instance="memcached-session-69b5fdf649-zx8lg",job="memcached",pod-namespace="asdf",pod-ip="10.244.134.119"} 1
-memcached_uptime_seconds{instance="memcached-session-69b5fdf649-zx8lg",job="memcached",pod-namespace="asdf",pod-ip="10.244.134.119"} 180590
-memcached_version{version="1.6.9",instance="memcached-session-69b5fdf649-zx8lg",job="memcached",pod-namespace="asdf",pod-ip="10.244.134.119"} 1
-memcached_written_bytes_total{instance="memcached-session-69b5fdf649-zx8lg",job="memcached",pod-namespace="asdf",pod-ip="10.244.134.119"} 66260
+# HELP promhttp_metric_handler_requests_total Total number of scrapes by HTTP status code.
+# TYPE promhttp_metric_handler_requests_total counter
+promhttp_metric_handler_requests_total{code="200",instance="memcached-db-54c6dc7658-9zlwq",job="memcached",pod-namespace="somenamespace",pod-ip="10.244.137.60"} 23
+promhttp_metric_handler_requests_total{code="200",instance="memcached-db-7788765cbb-clrqg",job="memcached",pod-namespace="someothernamespace",pod-ip="10.244.142.192"} 18
+promhttp_metric_handler_requests_total{code="200",instance="memcached-session-69b5fdf649-zx8lg",job="memcached",pod-namespace="someothernamespace",pod-ip="10.244.134.119"} 18
+promhttp_metric_handler_requests_total{code="500",instance="memcached-db-54c6dc7658-9zlwq",job="memcached",pod-namespace="somenamespace",pod-ip="10.244.137.60"} 0
+promhttp_metric_handler_requests_total{code="500",instance="memcached-db-7788765cbb-clrqg",job="memcached",pod-namespace="someothernamespace",pod-ip="10.244.142.192"} 0
+promhttp_metric_handler_requests_total{code="500",instance="memcached-session-69b5fdf649-zx8lg",job="memcached",pod-namespace="someothernamespace",pod-ip="10.244.134.119"} 0
 ...
 ```
