@@ -45,6 +45,19 @@ promhttp_metric_handler_requests_total{code="500",instance="memcached-session-69
 ...
 ```
 
+Then in Prometheus config:   
+
+```
+...
+  - job_name: 'k8s-metrics-aggregator-memcached'
+    honor_labels: true
+    metrics_path: "/metrics?job=memcached"
+    static_configs:
+    - targets:
+      - 'metrics-aggregator.k8s:80'
+...
+```
+
 ### Environment
 
 - LOG_LEVEL: log level, default info
