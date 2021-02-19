@@ -1,6 +1,7 @@
 #!/usr/bin/env python3 
 
 import multiprocessing, requests, os, time 
+import urllib.parse
 from datetime import datetime 
 from kubernetes import client, config
 
@@ -120,17 +121,19 @@ class RequestHandler(BaseHTTPRequestHandler):
         response_body = ''
 
         try:
-            location, params = self.path.split('?', 1)
-            param_name, param_value = params.split('=', 1)
-        except:
-            self.respond(400, 'Bad Request', 'Target job name not specified')
+            location, params = urllib.parse.unquote(self.path).split('?', 1)
+            params = dict(urllib.parse.parse_qsl(params))
+            job_name = params["job"]
+        except Exception as e:
+            print (e)
+            self.respond(400, 'Bad Request', 'Target job param/name not specified')
             return 
 
-        if param_name != 'job':
-            self.respond(400, 'Bad Request', f"Unknown parameter '{param_value}'")
-            return
+        #if param_name != 'job':
+        #    self.respond(400, 'Bad Request', f"Unknown parameter '{param_value}'")
+        #    return
 
-        job_name = param_value
+        # job_name = param_value
 
         if job_name not in self.pod_job_cache['cache'].keys():
             self.respond(400, 'Bad Request', 'Target job name not found in cache')
@@ -243,8 +246,8 @@ def request_metrics(pod):
 
         temp[ "instance" ] = f"{quote_char}{pod['name']}{quote_char}"
         temp[ "job" ] = f"{quote_char}{pod['labels']['job-name']}{quote_char}"
-        temp[ "pod-namespace" ] = f"{quote_char}{pod['namespace']}{quote_char}"
-        temp[ "pod-ip" ] = f"{quote_char}{pod['ip']}{quote_char}"
+        temp[ "pod_namespace" ] = f"{quote_char}{pod['namespace']}{quote_char}"
+        temp[ "pod_ip" ] = f"{quote_char}{pod['ip']}{quote_char}"
 
         labels = []
 
