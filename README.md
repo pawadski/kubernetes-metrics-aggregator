@@ -54,9 +54,11 @@ Then in Prometheus config:
     metrics_path: "/metrics?job=memcached"
     static_configs:
     - targets:
-      - 'metrics-aggregator.k8s:80'
+      - 'localhost:80'
 ...
 ```
+
+You get the idea.  
 
 ### Environment
 
