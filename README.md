@@ -31,7 +31,7 @@ If for some reason you want to try it, setup pod labels first. For example:
     metrics-aggregator.apawel.me/tls-enabled=false
     metrics-aggregator.apawel.me/tls-verify=true
     
-Metrics aggregator will scrape **all** pods with this label and give you their metrics. Instance is set to pod name and two additional labels are added: pod-namespace, pod-ip   
+Metrics aggregator will scrape **all** pods with this label and give you their metrics. Instance is set to pod name and two additional labels are added: pod_namespace, pod_ip   
 
 ```
 curl 'localhost:80/metrics?job=memcached'
