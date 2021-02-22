@@ -11,6 +11,11 @@ from http.server import BaseHTTPRequestHandler
 # Configs can be set in Configuration class directly or using helper utility
 config.load_incluster_config()
 
+with open(config.incluster_config.SERVICE_TOKEN_FILENAME) as handle:
+    account_token = handle.read()
+
+account_ca_filename = config.incluster_config.SERVICE_CERT_FILENAME
+
 manager = multiprocessing.Manager()
 
 pod_job_cache = manager.dict( { 'cache': None } )
@@ -20,6 +25,8 @@ default_pod_labels = {
     'endpoint': 'metrics',
     'port': '80',
     'scrape-timeout-seconds': '5',
+    'tls-enabled': 'false',
+    'tls-verify': 'true',
     'job-name': None
 }
 
@@ -205,8 +212,18 @@ def request_metrics(pod):
     log('debug', f"checking metrics for namespace {pod['namespace']} pod {pod['name']} job-name {pod['labels']['job-name']}")
     uplabels = f"job='{pod['labels']['job-name']}',instance='{pod['name']}',pod_namespace='{pod['namespace']}',pod_ip='{pod['ip']}'"
 
+    if pod['labels']['tls-enabled'] == 'true':
+        protocol = "https"
+    else:
+        protocol = "http"
+
+    if pod['labels']['tls-verify'] == 'true':
+        verify = account_ca_filename
+    else:
+        verify = False 
+
     try:
-        data = requests.get( f"http://{pod['ip']}:{pod['labels']['port']}/{pod['labels']['endpoint']}", timeout=int(pod['labels']['scrape-timeout-seconds']))
+        data = requests.get( f"{protocol}://{pod['ip']}:{pod['labels']['port']}/{pod['labels']['endpoint']}", headers={'Authorization': f'Bearer {account_token}'}, verify=verify, timeout=int(pod['labels']['scrape-timeout-seconds']))
     except requests.exceptions.Timeout:
         log("warning", f"namespace {pod['namespace']} pod {pod['name']}: timed out getting metrics")
         metrics_output.append( f"up{{{uplabels}}} 0" )
