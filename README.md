@@ -28,6 +28,8 @@ If for some reason you want to try it, setup pod labels first. For example:
     metrics-aggregator.apawel.me/port=9150
     metrics-aggregator.apawel.me/scrape-timeout-seconds=5
     metrics-aggregator.apawel.me/job-name=memcached
+    metrics-aggregator.apawel.me/tls-enabled=false
+    metrics-aggregator.apawel.me/tls-verify=true
     
 Metrics aggregator will scrape **all** pods with this label and give you their metrics. Instance is set to pod name and two additional labels are added: pod-namespace, pod-ip   
 
