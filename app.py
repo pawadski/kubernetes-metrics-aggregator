@@ -210,7 +210,7 @@ def aggregate_metrics(raw_metrics):
 def request_metrics(pod):
     metrics_output = []
     log('debug', f"checking metrics for namespace {pod['namespace']} pod {pod['name']} job-name {pod['labels']['job-name']}")
-    uplabels = f"job='{pod['labels']['job-name']}',instance='{pod['name']}',pod_namespace='{pod['namespace']}',pod_ip='{pod['ip']}'"
+    uplabels = f'job="{pod["labels"]["job-name"]}",instance="{pod["name"]}",pod_namespace="{pod["namespace"]}",pod_ip="{pod["ip"]}"'
 
     if pod['labels']['tls-enabled'] == 'true':
         protocol = "https"
@@ -223,7 +223,12 @@ def request_metrics(pod):
         verify = False 
 
     try:
-        data = requests.get( f"{protocol}://{pod['ip']}:{pod['labels']['port']}/{pod['labels']['endpoint']}", headers={'Authorization': f'Bearer {account_token}'}, verify=verify, timeout=int(pod['labels']['scrape-timeout-seconds']))
+        request_url = f"{protocol}://{pod['ip']}:{pod['labels']['port']}/{pod['labels']['endpoint']}"
+        request_headers = {'Authorization': f'Bearer {account_token}'}
+        request_timeout=int(pod['labels']['scrape-timeout-seconds'])
+
+        log("debug", f"request_url: {request_url}, request_headers: {request_headers}, request_timeout: {request_timeout}, verify: {verify}, timeout: {request_timeout}")
+        data = requests.get( request_url, headers=request_headers, verify=verify, timeout=int(pod['labels']['scrape-timeout-seconds']))
     except requests.exceptions.Timeout:
         log("warning", f"namespace {pod['namespace']} pod {pod['name']}: timed out getting metrics")
         metrics_output.append( f"up{{{uplabels}}} 0" )
@@ -232,6 +237,9 @@ def request_metrics(pod):
         log("warning", f"namespace {pod['namespace']} pod {pod['name']}: request failed with exception: {e}")
         metrics_output.append( f"up{{{uplabels}}} 0" )
         return metrics_output
+
+    if not data.ok:
+        log("warning", f"namespace {pod['namespace']} pod {pod['name']}: request failed: {data.text}")
 
     metrics_input = data.text.splitlines()
 
@@ -252,19 +260,18 @@ def request_metrics(pod):
             metric_name, labels = metric_name.split('{', 1)
 
             labels = labels[:-1].split(',')
-            quote_char = labels[0][-1]
 
             for label in labels:
                 key, value = label.split('=')
                 temp[key] = value
         except ValueError:
             # no labels
-            quote_char = '"'
+            pass 
 
-        temp[ "instance" ] = f"{quote_char}{pod['name']}{quote_char}"
-        temp[ "job" ] = f"{quote_char}{pod['labels']['job-name']}{quote_char}"
-        temp[ "pod_namespace" ] = f"{quote_char}{pod['namespace']}{quote_char}"
-        temp[ "pod_ip" ] = f"{quote_char}{pod['ip']}{quote_char}"
+        temp[ "instance" ] = f'"{pod["name"]}"'
+        temp[ "job" ] = f'"{pod["labels"]["job-name"]}"'
+        temp[ "pod_namespace" ] = f'"{pod["namespace"]}"'
+        temp[ "pod_ip" ] = f'"{pod["ip"]}"'
 
         labels = []
 
@@ -273,7 +280,7 @@ def request_metrics(pod):
             
         metrics_output.append(f"{metric_name}{{{','.join(labels)}}} {metric_value}")
 
-    uplabels = f"job={quote_char}{pod['labels']['job-name']}{quote_char},instance={quote_char}{pod['name']}{quote_char},pod_namespace={quote_char}{pod['namespace']}{quote_char},pod_ip={quote_char}{pod['ip']}{quote_char}"
+    # uplabels = f'job="{pod['labels']['job-name']}",instance="{pod['name']}",pod_namespace="{pod['namespace']}",pod_ip="{pod['ip']}"'
     metrics_output.append( f"up{{{uplabels}}} 1" )
 
     return metrics_output
