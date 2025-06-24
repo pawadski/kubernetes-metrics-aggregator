@@ -2,6 +2,7 @@
 
 import multiprocessing, requests, os, time 
 import urllib.parse
+import re
 from datetime import datetime 
 from kubernetes import client, config
 
@@ -123,9 +124,9 @@ class RequestHandler(BaseHTTPRequestHandler):
         self.wfile.write(response_body.encode('utf-8'))
 
     def do_GET(self):
-        response_code = 200
-        response_message = 'OK'
-        response_body = ''
+        # response_code = 200
+        # response_message = 'OK'
+        # response_body = ''
 
         try:
             location, params = urllib.parse.unquote(self.path).split('?', 1)
@@ -244,6 +245,10 @@ def request_metrics(pod):
     metrics_input = data.text.splitlines()
 
     for metric in metrics_input:
+        metric = metric.strip()
+        if not metric:
+            continue
+
         if metric[0:1] == '#':
             metrics_output.append(metric)
             continue 
@@ -257,13 +262,12 @@ def request_metrics(pod):
         temp = {}
 
         try:
-            metric_name, labels = metric_name.split('{', 1)
+            metric_name, label_string = metric_name.split('{', 1)
 
-            labels = labels[:-1].split(',')
-
-            for label in labels:
-                key, value = label.split('=')
-                temp[key] = value
+            label_string = label_string.rsplit('}', maxsplit=1)[0]
+            
+            for pair in re.findall(r'([^=,]+)=\"([^\"]+)\"', label_string):
+                temp[pair[0]] = f'"{pair[1]}"'
         except ValueError:
             # no labels
             pass 
