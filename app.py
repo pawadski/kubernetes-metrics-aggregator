@@ -168,7 +168,11 @@ def aggregate_metrics(raw_metrics):
 
     for metric in raw_metrics:
         if metric[0:1] == '#':
-            _, comment_type, metric_name, text = metric.split(' ', 3)
+            try:
+                _, comment_type, metric_name, text = metric.split(' ', 3)
+            except ValueError:
+                print(f"ValueError: Failed to unpack comment: {metric}")
+                continue
 
             if metric_name not in aggregated_metrics.keys():
                 aggregated_metrics[metric_name] = { 'data': [] }
